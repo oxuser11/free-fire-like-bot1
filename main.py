@@ -360,10 +360,6 @@ def execute_like(m, target_uid):
         )
         return
 
-    u["credits"] -= 10
-    u["likes_ordered"] += 20
-    save_db(db)
-
     progress_msg = (
         "╭─── ✪ GIVING LIKE ─────────\n"
         "│ 📡 **PROCESSING REQUEST**\n"
@@ -379,9 +375,39 @@ def execute_like(m, target_uid):
 
         p_name = res.get("PlayerNickname", res.get("name", "Unknown"))
         p_region = res.get("Region", "ind")
-        likes_before = res.get("LikesbeforeCommand", res.get("before", "4685"))
-        likes_after = res.get("LikesafterCommand", res.get("after", "4705"))
-        likes_given = res.get("LikesGivenByAPI", res.get("given", "+20"))
+        likes_before = res.get("LikesbeforeCommand", res.get("before", "0"))
+        likes_after = res.get("LikesafterCommand", res.get("after", "0"))
+        likes_given_raw = str(res.get("LikesGivenByAPI", res.get("given", "0"))).replace("+", "")
+        
+        try:
+            given_count = int(likes_given_raw)
+        except:
+            given_count = 0
+
+        # FAIL / LIMIT REACHED CHECK (If 0 likes delivered)
+        if given_count <= 0 or likes_before == likes_after:
+            try:
+                bot.delete_message(m.chat.id, sent_card.message_id)
+            except:
+                pass
+
+            fail_text = (
+                "⚠️ **LIKE NOT DELIVERED / LIMIT REACHED!**\n\n"
+                f"👤 **Player:** `{p_name}` (`{target_uid}`)\n"
+                f"📊 **Current Likes:** `{likes_before}`\n"
+                "❤️ **Given:** `0`\n\n"
+                "🛑 **Wajah (Reason):**\n"
+                "1. Is Free Fire ID par aaj ki **Daily Like Limit (100 Max)** poori ho chuki hai.\n"
+                "2. Ya phir Free Fire server cooldown par hai.\n\n"
+                "✅ **Aapke 10 Credits refund kar diye gaye hain.** Kal dobara koshish karein ya doosri UID try karein."
+            )
+            bot.send_message(m.chat.id, fail_text, parse_mode='Markdown', reply_markup=main_keyboard())
+            return
+
+        # SUCCESS CASE (Only deduct credits if likes were actually sent)
+        u["credits"] -= 10
+        u["likes_ordered"] += given_count
+        save_db(db)
 
         result_text = (
             "╭─── ✪ LIKE SUCCESSFUL ─────\n"
@@ -395,7 +421,7 @@ def execute_like(m, target_uid):
             "╭─── ✦ LIKES ✦ ─────────────\n"
             f"│ 📉 **BEFORE:** `{likes_before}`\n"
             f"│ 📈 **AFTER:** `{likes_after}`\n"
-            f"│ ❤️ **GIVEN:** `{likes_given}`\n"
+            f"│ ❤️ **GIVEN:** `+{given_count}`\n"
             "╰───────────────────────────\n\n"
             f"💰 **Remaining Credits:** `{u['credits']}`\n"
             "🎯 @OxRehanCyber"
@@ -412,18 +438,15 @@ def execute_like(m, target_uid):
             bot.send_message(m.chat.id, result_text, parse_mode='Markdown', reply_markup=main_keyboard())
 
     except Exception as err:
-        u["credits"] += 10
-        u["likes_ordered"] -= 20
-        save_db(db)
         try:
             bot.edit_message_text(
-                "❌ **API Busy ya Server down hai!**\nAapke 10 credits refund kar diye gaye hain. 1 minute baad try karein.",
+                "❌ **API Server Busy / Timeout!**\nAapke credits nahi kate hain. Kripya 2 minute baad dubara check karein.",
                 chat_id=m.chat.id,
                 message_id=sent_card.message_id,
                 parse_mode='Markdown'
             )
         except:
-            bot.reply_to(m, "❌ Server busy hai, credits refund kar diye gaye hain.", reply_markup=main_keyboard())
+            bot.reply_to(m, "❌ Server busy hai, credits refund ho gaye hain.", reply_markup=main_keyboard())
 
 # 8. Admin Commands
 @bot.message_handler(commands=['gen'])
