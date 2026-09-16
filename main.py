@@ -7,12 +7,12 @@ import telebot
 from telebot import types
 from flask import Flask
 
-# 1. 24/7 Web Server for Render
+# 1. 24/7 Server for Render
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "FREE FIRE LIKE BOT 1 ACTIVE 24/7"
+    return "NUMBER TO INFO BOT ACTIVE 24/7"
 
 def run_web():
     port = int(os.environ.get("PORT", 8080))
@@ -26,33 +26,24 @@ ADMIN_USER = "OxRehann"
 CH1_ID = "@OxRehanCyber"
 CH1_LINK = "https://t.me/OxRehanCyber"
 CH2_LINK = "https://t.me/+852hkOgj0UNlZGU9"
-INSTA_LINK = "https://instagram.com/ox.mods"
 
-API_BASE_URL = "https://two0likeapifreebyzexxyh4x.onrender.com/like"
-API_KEY = "20LikeFreeApiByzexxyh4x"
-HEADER_MEDIA = "https://files.catbox.moe/0v2540.mp4"
+API_BASE = "https://api-hub-alpha.vercel.app/api/number-info"
+API_KEY = "cybershr1k_b800c6028c1935c39a"
 
-KV_URL = "https://api.keyval.org/ox_ff_like_bot1_db_2026"
-DB_FILE = "ff_like1_db.json"
+DB_FILE = "num_info_db.json"
+user_states = {}
 
 bot = telebot.TeleBot(BOT_TOKEN)
-user_states = {}
 
 # 3. Database Management
 def load_db():
-    try:
-        r = requests.get(KV_URL, timeout=4).json()
-        if isinstance(r, dict) and "users" in r:
-            return r
-    except:
-        pass
     if os.path.exists(DB_FILE):
         try:
             with open(DB_FILE, 'r') as f:
                 return json.load(f)
         except:
             pass
-    return {"users": {}, "gift_codes": {}}
+    return {"users": {}}
 
 def save_db(data):
     try:
@@ -60,20 +51,16 @@ def save_db(data):
             json.dump(data, f)
     except:
         pass
-    try:
-        requests.post(KV_URL, json=data, timeout=4)
-    except:
-        pass
 
 db = load_db()
 
-def get_user(uid):
+def get_user(uid, username="User"):
     s = str(uid)
     if s not in db["users"]:
         db["users"][s] = {
-            "credits": 0,
-            "referrals": 0,
-            "likes_ordered": 0,
+            "name": username,
+            "credits": 10,
+            "invites": 0,
             "verified": False,
             "referrer": None
         }
@@ -84,33 +71,30 @@ def check_channel_member(uid):
     try:
         st = bot.get_chat_member(CH1_ID, uid).status
         return st in ['member', 'administrator', 'creator']
-    except Exception as e:
+    except:
         return True
 
-# 4. Keyboards
+# 4. Keyboards & Markup
 def verify_markup():
     kb = types.InlineKeyboardMarkup(row_width=1)
     kb.add(
-        types.InlineKeyboardButton("🔵 𝗝𝗢𝗜𝗡 𝗖𝗛𝗔𝗡𝗡𝗘𝗟 𝟭 🔹", url=CH1_LINK),
-        types.InlineKeyboardButton("🔵 𝗝𝗢𝗜𝗡 𝗖𝗛𝗔𝗡𝗡𝗘𝗟 𝟮 🔹", url=CH2_LINK),
-        types.InlineKeyboardButton("🔵 𝗙𝗢𝗟𝗟𝗢𝗪 𝗜𝗡𝗦𝗧𝗔𝗚𝗥𝗔𝗠 🔹", url=INSTA_LINK),
-        types.InlineKeyboardButton("🟢 ⚡ 𝗩𝗘𝗥𝗜𝗙𝗬 & 𝗨𝗡𝗟𝗢𝗖𝗞 ⚡ 🟢", callback_data="chk_verify")
+        types.InlineKeyboardButton("📢 Join Official Channel", url=CH1_LINK),
+        types.InlineKeyboardButton("📢 Join Backup Channel", url=CH2_LINK),
+        types.InlineKeyboardButton("⚡ 𝐕𝐄𝐑𝐈𝐅𝐘 & 𝐔𝐍𝐋𝐎𝐂𝐊 ⚡", callback_data="chk_verify")
     )
     return kb
 
-BTN_SEND_LIKE = "🚀 🎯 SEND LIKE (10 CREDITS)"
-BTN_PROFILE   = "🟡 👤 MY PROFILE / CREDITS"
-BTN_REFER     = "🟢 👥 REFER & EARN (10 CR)"
-BTN_REDEEM    = "🟣 🎁 REDEEM GIFT CODE"
-BTN_BUY       = "💎 💳 BUY CREDITS"
-BTN_SUPPORT   = "🟠 📞 24/7 SUPPORT"
+BTN_NUM_INFO = "🔍 𝐍𝐮𝐦𝐛𝐞𝐫 𝐓𝐨 𝐈𝐧𝐟𝐨"
+BTN_BALANCE  = "💳 𝐁𝐚𝐥𝐚𝐧𝐜𝐞"
+BTN_REFER    = "🎁 𝐑𝐞𝐟𝐞𝐫"
+BTN_BUY      = "💎 𝐁𝐮𝐲 𝐂𝐫𝐞𝐝𝐢𝐭𝐬"
+BTN_CHANNEL  = "📢 𝐂𝐡𝐚𝐧𝐧𝐞𝐥"
 
 def main_keyboard():
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    kb.add(types.KeyboardButton(BTN_SEND_LIKE))
-    kb.add(types.KeyboardButton(BTN_PROFILE), types.KeyboardButton(BTN_REFER))
-    kb.add(types.KeyboardButton(BTN_REDEEM), types.KeyboardButton(BTN_BUY))
-    kb.add(types.KeyboardButton(BTN_SUPPORT))
+    kb.add(types.KeyboardButton(BTN_NUM_INFO))
+    kb.add(types.KeyboardButton(BTN_BALANCE), types.KeyboardButton(BTN_REFER))
+    kb.add(types.KeyboardButton(BTN_BUY), types.KeyboardButton(BTN_CHANNEL))
     return kb
 
 # 5. Handlers
@@ -119,13 +103,14 @@ def start_handler(m):
     uid = m.from_user.id
     s = str(uid)
     text = m.text.split()
+    user_name = m.from_user.first_name or "REHANNN"
 
     if s not in db["users"]:
         ref_id = text[1] if len(text) > 1 and text[1].isdigit() and text[1] != s else None
         db["users"][s] = {
-            "credits": 0,
-            "referrals": 0,
-            "likes_ordered": 0,
+            "name": user_name,
+            "credits": 5,
+            "invites": 0,
             "verified": False,
             "referrer": ref_id
         }
@@ -136,375 +121,195 @@ def start_handler(m):
     if not u.get("verified", False):
         rm = types.ReplyKeyboardRemove()
         bot.send_message(m.chat.id, "🔒 *Verification Required!*", reply_markup=rm)
-        caption_verify = (
-            f"👋 *HELLO, {m.from_user.first_name.upper()}!*\n\n"
-            "⚠️ *Bot use karne aur 10 Free Credits lene ke liye steps complete karein:*\n"
-            "🔹 Channel 1 & Channel 2 join karein\n"
-            "🔹 Instagram par follow karein (@ox.mods)\n\n"
-            "Tasks poore karke niche **⚡ VERIFY & UNLOCK ⚡** dabayein!"
+        verify_text = (
+            f"👋 *Hey, {user_name}!*\\n\\n"
+            "⚠️ Bot ke features use karne ke liye pehle hamare official channels join karein.\\n\\n"
+            "Join karne ke baad niche **⚡ 𝐕𝐄𝐑𝐈𝐅𝐘 & 𝐔𝐍𝐋𝐎𝐂𝐊 ⚡** dabayein!"
         )
-        bot.send_message(m.chat.id, caption_verify, parse_mode='Markdown', reply_markup=verify_markup())
+        bot.send_message(m.chat.id, verify_text, parse_mode='Markdown', reply_markup=verify_markup())
         return
 
-    caption_text = (
-        "╔══════════════════════════╗\n"
-        "   ✦  **OX REHAN LIKE BOT**  ✦  ||\n"
-        "╚══════════════════════════╝\n\n"
-        f"👋 **HELLO, {m.from_user.first_name.upper()}!**\n"
-        "────────────────────────────\n"
-        f"💰 **Available Balance:** `{u['credits']} Credits`\n"
-        "🎯 **Cost:** 10 Credits = 20 Likes\n\n"
-        "🚀 **QUICK COMMANDS**\n"
-        "┌───────────────────────────\n"
-        "│ 🎯 `/like [UID]` — SEND LIKES (10 Cr)\n"
-        "│ 🎁 `/redeem [CODE]` — CLAIM GIFT CODE\n"
-        "│ 👥 `/refer` — GET 10 CREDITS PER INVITE\n"
-        "└───────────────────────────\n\n"
-        "Neeche diye gaye buttons se operate karein 👇"
+    welcome_text = (
+        f"👑 **WELCOME {user_name.upper()}**\\n\\n"
+        f"🆔 **Account:** `{uid}`\\n"
+        f"💳 **Balance:** `{u['credits']} Credits`\\n"
+        f"👥 **Invites:** `{u['invites']}`\\n\\n"
+        "Neeche diye gaye buttons se use karein 👇"
     )
-
-    try:
-        bot.send_video(m.chat.id, HEADER_MEDIA, caption=caption_text, parse_mode='Markdown', reply_markup=main_keyboard())
-    except:
-        bot.send_message(m.chat.id, caption_text, parse_mode='Markdown', reply_markup=main_keyboard())
+    bot.send_message(m.chat.id, welcome_text, parse_mode='Markdown', reply_markup=main_keyboard())
 
 @bot.callback_query_handler(func=lambda c: c.data == "chk_verify")
 def callback_verification(c):
     uid = c.from_user.id
-    s = str(uid)
-    u = get_user(uid)
+    u = get_user(uid, c.from_user.first_name)
 
     if check_channel_member(uid):
         u["verified"] = True
-        u["credits"] += 10
+        u["credits"] += 5
 
         ref_id = u.get("referrer")
         if ref_id and ref_id in db["users"]:
-            db["users"][ref_id]["credits"] += 10
-            db["users"][ref_id]["referrals"] += 1
+            db["users"][ref_id]["credits"] += 3
+            db["users"][ref_id]["invites"] += 1
             u["referrer"] = None
             try:
                 bot.send_message(
                     int(ref_id),
-                    f"🎉 *New Referral Joined & Verified!*\n\n"
-                    f"👤 Member: `{c.from_user.first_name}`\n"
-                    f"💎 *+10 Credits* aapke account me add ho gaye!",
+                    f"🎁 *New Referral Joined!*\\n\\n👤 User: `{c.from_user.first_name}`\\n💎 *+3 Credits* added to your wallet!",
                     parse_mode='Markdown'
                 )
             except:
                 pass
 
         save_db(db)
-
         try:
             bot.delete_message(c.message.chat.id, c.message.message_id)
         except:
             pass
 
-        bot.answer_callback_query(c.id, "✅ Verified! 10 Credits added!")
+        bot.answer_callback_query(c.id, "✅ Verified successfully!")
         bot.send_message(
             c.message.chat.id,
-            "🎉 *Welcome Bonus Unlocked!*\n\n"
-            "🎁 Aapko **10 Free Credits** mil gaye hain!\n"
-            "Ab aap kisi bhi account par **20 Likes** send kar sakte hain.",
+            "🎉 **Verification Successful!**\\n\\nBot unlock ho gaya hai aur aapko bonus credits mil chuke hain.",
             parse_mode='Markdown',
             reply_markup=main_keyboard()
         )
     else:
         bot.answer_callback_query(c.id, "❌ Aapne abhi tak channel join nahi kiya!", show_alert=True)
 
-# 6. Button Actions
-@bot.message_handler(func=lambda m: "SEND LIKE" in m.text.upper())
-def send_like_btn(m):
-    user_states[m.from_user.id] = "await_uid"
+# 6. Button Operations
+@bot.message_handler(func=lambda m: "NUMBER TO INFO" in m.text.upper())
+def num_info_btn(m):
+    u = get_user(m.from_user.id)
+    if not u.get("verified", False):
+        bot.send_message(m.chat.id, "🔒 Kripya pehle /start karke verify karein!", reply_markup=verify_markup())
+        return
+
+    if u["credits"] < 1:
+        bot.send_message(
+            m.chat.id,
+            "⚠️ **Insufficient Credits!**\\n\\nNumber info nikalne ke liye minimum **1 Credit** chahiye.\\nFriends ko refer karke credits collect karein.",
+            parse_mode='Markdown',
+            reply_markup=main_keyboard()
+        )
+        return
+
+    user_states[m.from_user.id] = "await_num"
     bot.send_message(
         m.chat.id,
-        "🎯 **Enter Free Fire UID:**\n\n"
-        "Jis ID par 20 likes send karne hain, uska UID type karke bhejein.\n"
-        "_(Cost: 10 Credits | Cancel: /cancel)_",
+        "📱 **Enter 10-Digit Mobile Number:**\\n\\nJis number ki details nikalni hain wo yahan enter karein.\\n_(Cost: 1 Credit | Cancel: /cancel)_",
         parse_mode='Markdown'
     )
 
-@bot.message_handler(func=lambda m: "PROFILE" in m.text.upper())
-def profile_btn(m):
+@bot.message_handler(func=lambda m: "BALANCE" in m.text.upper())
+def balance_btn(m):
     user_states.pop(m.from_user.id, None)
-    u = get_user(m.from_user.id)
-    text = (
-        "╔══════════════════════════╗\n"
-        "       👤 **USER PROFILE**       \n"
-        "╚══════════════════════════╝\n\n"
-        f"👤 **Name:** {m.from_user.first_name}\n"
-        f"🆔 **Telegram ID:** `{m.from_user.id}`\n\n"
-        f"💎 **Credits:** `{u['credits']} Credits`\n"
-        f"👥 **Total Referrals:** `{u['referrals']}`\n"
-        f"❤️ **Likes Ordered:** `{u['likes_ordered']} Likes`\n\n"
-        "📌 *10 Credits = 20 Likes*"
+    u = get_user(m.from_user.id, m.from_user.first_name)
+    bal_text = (
+        f"┌─── ❖ **ACCOUNT DETAILS** ❖ ───\\n"
+        f"│ 👤 **User:** `{u['name']}`\\n"
+        f"│ 🆔 **Account:** `{m.from_user.id}`\\n"
+        f"│ 💳 **Balance:** `{u['credits']} Credits`\\n"
+        f"│ 👥 **Invites:** `{u['invites']}`\\n"
+        f"└─── ❖ ─────────────── ❖ ───"
     )
-    bot.send_message(m.chat.id, text, parse_mode='Markdown', reply_markup=main_keyboard())
+    bot.send_message(m.chat.id, bal_text, parse_mode='Markdown', reply_markup=main_keyboard())
 
-@bot.message_handler(func=lambda m: any(w in m.text.upper() for w in ["REFER", "EARN"]))
+@bot.message_handler(func=lambda m: "REFER" in m.text.upper())
 def refer_btn(m):
     user_states.pop(m.from_user.id, None)
     uid = m.from_user.id
     bot_user = bot.get_me().username
-    text = (
-        "🚀 **REFER & EARN UNLIMITED CREDITS** 🚀\n\n"
-        "💎 **Reward:** Har valid friend ke join hone par **10 Credits**!\n"
-        "🎯 **1 Friend = 20 Free Fire Likes!**\n\n"
-        "🔗 **Aapka Personal Invite Link:**\n"
-        f"`https://t.me/{bot_user}?start={uid}`\n\n"
-        "📌 *Is link ko doston aur groups me share karein!*"
+    ref_text = (
+        f"🎁 **Referral Link (+3 Credits):**\\n"
+        f"`https://t.me/{bot_user}?start={uid}`\\n\\n"
+        "Har valid friend ke verification par aapko **3 Credits** milenge!"
     )
-    bot.send_message(m.chat.id, text, parse_mode='Markdown', reply_markup=main_keyboard())
+    bot.send_message(m.chat.id, ref_text, parse_mode='Markdown', reply_markup=main_keyboard())
 
-@bot.message_handler(func=lambda m: "BUY" in m.text.upper())
-def buy_credits_btn(m):
+@bot.message_handler(func=lambda m: "BUY CREDITS" in m.text.upper())
+def buy_btn(m):
     user_states.pop(m.from_user.id, None)
-    text = (
-        "💎 **BUY EXTRA LIKE CREDITS** 💎\n\n"
-        "Agar aap extra likes chahte hain toh cheap price me credits khareed sakte hain:\n\n"
-        "• 50 Credits (100 Likes) — ₹20\n"
-        "• 120 Credits (240 Likes) — ₹40\n"
-        "• 300 Credits (600 Likes) — ₹80\n\n"
-        f"👉 Contact Admin for Purchase: @{ADMIN_USER}"
+    buy_text = (
+        "💎 **BUY EXTRA CREDITS** 💎\\n\\n"
+        "Credits recharge karne ke liye admin se direct contact karein:\\n"
+        f"👉 @{ADMIN_USER}"
     )
-    bot.send_message(m.chat.id, text, parse_mode='Markdown', reply_markup=main_keyboard())
+    bot.send_message(m.chat.id, buy_text, parse_mode='Markdown', reply_markup=main_keyboard())
 
-@bot.message_handler(func=lambda m: "REDEEM" in m.text.upper())
-def redeem_btn(m):
-    user_states[m.from_user.id] = "redeem_code"
-    bot.send_message(m.chat.id, "🎁 Apna **Gift Code** yahan enter karein:\n\n_(Cancel: /cancel)_")
-
-@bot.message_handler(func=lambda m: "SUPPORT" in m.text.upper())
-def support_btn(m):
+@bot.message_handler(func=lambda m: "CHANNEL" in m.text.upper())
+def channel_btn(m):
     user_states.pop(m.from_user.id, None)
-    bot.send_message(
-        m.chat.id,
-        f"📞 **OFFICIAL SUPPORT**\n\nKisi bhi problem ya credits lene ke liye admin se baat karein:\n👉 @{ADMIN_USER}",
-        parse_mode='Markdown',
-        reply_markup=main_keyboard()
-    )
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton("📢 Join Channel", url=CH1_LINK))
+    bot.send_message(m.chat.id, "Official channel join karein naye updates ke liye:", reply_markup=kb)
 
 @bot.message_handler(commands=['cancel'])
 def cancel_cmd(m):
     user_states.pop(m.from_user.id, None)
     bot.send_message(m.chat.id, "❌ Action canceled.", reply_markup=main_keyboard())
 
-# 7. Processing Inputs
-@bot.message_handler(commands=['like'])
-def direct_like_cmd(m):
-    parts = m.text.split()
-    if len(parts) < 2:
-        bot.reply_to(m, "Format: `/like <UID>`\nExample: `/like 8559022952`", parse_mode='Markdown')
-        return
-    execute_like(m, parts[1].strip())
-
+# 7. Number Processing & API Call
 @bot.message_handler(func=lambda m: m.from_user.id in user_states)
 def process_states(m):
     uid = m.from_user.id
     st = user_states.pop(uid, None)
-    u = get_user(uid)
+    u = get_user(uid, m.from_user.first_name)
 
-    if st == "await_uid":
-        execute_like(m, m.text.strip())
-
-    elif st == "redeem_code":
-        code = m.text.strip().upper()
-        s = str(uid)
-        codes = db.get("gift_codes", {})
-
-        if code not in codes:
-            bot.reply_to(m, "❌ Invalid ya Expired Gift Code!", reply_markup=main_keyboard())
+    if st == "await_num":
+        mobile = m.text.strip().replace(" ", "").replace("+91", "")
+        if not mobile.isdigit() or len(mobile) != 10:
+            bot.reply_to(m, "❌ **Invalid Mobile Number!** Kripya sahi 10-digit number enter karein.", reply_markup=main_keyboard())
             return
 
-        gdata = codes[code]
-        if s in gdata["users"]:
-            bot.reply_to(m, "⚠️ Yeh code aap pehle claim kar chuke hain!", reply_markup=main_keyboard())
-            return
-
-        if len(gdata["users"]) >= gdata["max_claims"]:
-            bot.reply_to(m, "⚠️ Is code ki claims limit full ho chuki hai!", reply_markup=main_keyboard())
-            return
-
-        amt = int(gdata["amount"])
-        u["credits"] += amt
-        gdata["users"].append(s)
-        save_db(db)
-
-        bot.reply_to(
-            m,
-            f"🎉 **Gift Code Redeemed Successfully!**\n\n"
-            f"💎 *+{amt} Credits* aapke account me credit ho gaye!\n"
-            f"💰 Total Credits: `{u['credits']}`",
-            parse_mode='Markdown',
-            reply_markup=main_keyboard()
-        )
-
-def execute_like(m, target_uid):
-    uid = m.from_user.id
-    u = get_user(uid)
-
-    if not target_uid.isdigit():
-        bot.reply_to(m, "❌ **Invalid UID!** Sirf numeric digits bhejein.", reply_markup=main_keyboard())
-        return
-
-    if u["credits"] < 10:
-        bot.send_message(
-            m.chat.id,
-            f"⚠️ **Insufficient Credits!**\n\n"
-            f"Aapka current balance: `{u['credits']} Credits`\n"
-            "20 Likes send karne ke liye **10 Credits** chahiye.\n\n"
-            "👉 Apne doston ko invite karein (10 Credits per invite) ya Buy karein!",
-            parse_mode='Markdown',
-            reply_markup=main_keyboard()
-        )
-        return
-
-    progress_msg = (
-        "╭─── ✪ GIVING LIKE ─────────\n"
-        "│ 📡 **PROCESSING REQUEST**\n"
-        "│ ▰▰▰▰▰▰▰▰▱▱ 80%\n"
-        "╰───────────────────────────\n"
-        "_SENDING 20 LIKES TO YOUR ACCOUNT CAREFULLY..._"
-    )
-    sent_card = bot.send_message(m.chat.id, progress_msg, parse_mode='Markdown')
-
-    try:
-        url = f"{API_BASE_URL}?key={API_KEY}&uid={target_uid}&region=ind"
-        res = requests.get(url, timeout=25).json()
-
-        p_name = res.get("PlayerNickname", res.get("name", "Unknown"))
-        p_region = res.get("Region", "ind")
-        likes_before = res.get("LikesbeforeCommand", res.get("before", "0"))
-        likes_after = res.get("LikesafterCommand", res.get("after", "0"))
-        likes_given_raw = str(res.get("LikesGivenByAPI", res.get("given", "0"))).replace("+", "")
-        
-        try:
-            given_count = int(likes_given_raw)
-        except:
-            given_count = 0
-
-        # FAIL / LIMIT REACHED CHECK (If 0 likes delivered)
-        if given_count <= 0 or likes_before == likes_after:
-            try:
-                bot.delete_message(m.chat.id, sent_card.message_id)
-            except:
-                pass
-
-            fail_text = (
-                "⚠️ **LIKE NOT DELIVERED / LIMIT REACHED!**\n\n"
-                f"👤 **Player:** `{p_name}` (`{target_uid}`)\n"
-                f"📊 **Current Likes:** `{likes_before}`\n"
-                "❤️ **Given:** `0`\n\n"
-                "🛑 **Wajah (Reason):**\n"
-                "1. Is Free Fire ID par aaj ki **Daily Like Limit (100 Max)** poori ho chuki hai.\n"
-                "2. Ya phir Free Fire server cooldown par hai.\n\n"
-                "✅ **Aapke 10 Credits refund kar diye gaye hain.** Kal dobara koshish karein ya doosri UID try karein."
-            )
-            bot.send_message(m.chat.id, fail_text, parse_mode='Markdown', reply_markup=main_keyboard())
-            return
-
-        # SUCCESS CASE (Only deduct credits if likes were actually sent)
-        u["credits"] -= 10
-        u["likes_ordered"] += given_count
-        save_db(db)
-
-        result_text = (
-            "╭─── ✪ LIKE SUCCESSFUL ─────\n"
-            "│ ✅ **ORDER COMPLETED**\n"
-            "╰───────────────────────────\n\n"
-            "╭─── ✦ PLAYER ✦ ────────────\n"
-            f"│ 🆔 **UID:** `{target_uid}`\n"
-            f"│ 👤 **NAME:** `{p_name}`\n"
-            f"│ 🌍 **REGION:** `{p_region}`\n"
-            "╰───────────────────────────\n\n"
-            "╭─── ✦ LIKES ✦ ─────────────\n"
-            f"│ 📉 **BEFORE:** `{likes_before}`\n"
-            f"│ 📈 **AFTER:** `{likes_after}`\n"
-            f"│ ❤️ **GIVEN:** `+{given_count}`\n"
-            "╰───────────────────────────\n\n"
-            f"💰 **Remaining Credits:** `{u['credits']}`\n"
-            "🎯 @OxRehanCyber"
-        )
+        wait_msg = bot.send_message(m.chat.id, "🔍 **Fetching Details from Database...**", parse_mode='Markdown')
 
         try:
-            bot.delete_message(m.chat.id, sent_card.message_id)
-        except:
-            pass
+            url = f"{API_BASE}?key={API_KEY}&mobile={mobile}"
+            resp = requests.get(url, timeout=20)
+            res = resp.json()
 
-        try:
-            bot.send_video(m.chat.id, HEADER_MEDIA, caption=result_text, parse_mode='Markdown', reply_markup=main_keyboard())
-        except:
-            bot.send_message(m.chat.id, result_text, parse_mode='Markdown', reply_markup=main_keyboard())
+            # Check validity of returned data
+            if not res or res.get("status") is False or res.get("success") is False:
+                bot.edit_message_text("❌ Is number ka data server par nahi mila ya number galat hai.", chat_id=m.chat.id, message_id=wait_msg.message_id)
+                return
 
-    except Exception as err:
-        try:
-            bot.edit_message_text(
-                "❌ **API Server Busy / Timeout!**\nAapke credits nahi kate hain. Kripya 2 minute baad dubara check karein.",
-                chat_id=m.chat.id,
-                message_id=sent_card.message_id,
-                parse_mode='Markdown'
-            )
-        except:
-            bot.reply_to(m, "❌ Server busy hai, credits refund ho gaye hain.", reply_markup=main_keyboard())
+            # Deduct Credit on Success
+            u["credits"] -= 1
+            save_db(db)
 
-# 8. Admin Commands
-@bot.message_handler(commands=['gen'])
-def admin_generate_code(m):
-    if m.from_user.id != ADMIN_ID:
-        return
-    parts = m.text.split()
-    if len(parts) != 4:
-        bot.reply_to(m, "Format: `/gen <CODE> <CREDITS> <MAX_USERS>`\nExample: `/gen FREE50 50 10`", parse_mode='Markdown')
-        return
+            # Format Response
+            data = res.get("data", res)
+            out_lines = [
+                "╔══════════════════════════╗",
+                "   🔍 **NUMBER INFORMATION**   ",
+                "╚══════════════════════════╝\\n",
+                f"📱 **Mobile:** `{mobile}`"
+            ]
 
-    code = parts[1].upper()
-    amount = int(parts[2])
-    max_c = int(parts[3])
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    if k.lower() not in ["status", "success", "key", "code"] and v:
+                        out_lines.append(f"🔹 **{k.replace('_', ' ').title()}:** `{v}`")
+            elif isinstance(data, list) and len(data) > 0:
+                first_item = data[0]
+                if isinstance(first_item, dict):
+                    for k, v in first_item.items():
+                        if v:
+                            out_lines.append(f"🔹 **{k.replace('_', ' ').title()}:** `{v}`")
+            else:
+                out_lines.append(f"🔹 **Result:** `{str(data)}`")
 
-    if "gift_codes" not in db:
-        db["gift_codes"] = {}
+            out_lines.append(f"\\n💳 **Remaining Credits:** `{u['credits']}`")
+            final_text = "\\n".join(out_lines)
 
-    db["gift_codes"][code] = {
-        "amount": amount,
-        "max_claims": max_c,
-        "users": []
-    }
-    save_db(db)
+            bot.delete_message(m.chat.id, wait_msg.message_id)
+            bot.send_message(m.chat.id, final_text, parse_mode='Markdown', reply_markup=main_keyboard())
 
-    bot.reply_to(
-        m,
-        f"✅ **Gift Code Created Successfully!**\n\n"
-        f"🎁 **Code:** `{code}`\n"
-        f"💎 **Credits:** `{amount}`\n"
-        f"👥 **Max Users:** `{max_c}`",
-        parse_mode='Markdown'
-    )
-
-@bot.message_handler(commands=['all'])
-def admin_broadcast(m):
-    if m.from_user.id != ADMIN_ID:
-        return
-    parts = m.text.split(maxsplit=1)
-    if len(parts) < 2:
-        bot.reply_to(m, "Format: `/all <Aapka Message>`", parse_mode='Markdown')
-        return
-
-    msg = parts[1]
-    all_users = list(db.get("users", {}).keys())
-    bot.reply_to(m, f"📢 Broadcast shuru: {len(all_users)} users ko bhej rahe hain...")
-
-    success, failed = 0, 0
-    for u in all_users:
-        try:
-            bot.send_message(int(u), f"📢 **OFFICIAL ANNOUNCEMENT**\n\n{msg}", parse_mode='Markdown')
-            success += 1
-            time.sleep(0.04)
-        except:
-            failed += 1
-
-    bot.send_message(m.chat.id, f"✅ Broadcast Done!\nSent: `{success}`\nFailed: `{failed}`", parse_mode='Markdown')
+        except Exception as e:
+            bot.edit_message_text("❌ API Server offline ya busy hai. Thodi der baad dubara prayas karein.", chat_id=m.chat.id, message_id=wait_msg.message_id)
 
 if __name__ == '__main__':
     threading.Thread(target=run_web).start()
     bot.infinity_polling()
+        
